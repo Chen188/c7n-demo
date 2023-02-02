@@ -1,0 +1,11 @@
+accounts:
+  - account_id: {account_id}
+    name: account-1
+    regions:
+      - us-east-1
+      - us-west-2
+    role: arn:aws:iam::{account_id}:role/custodian-cicd-role
+    vars:
+      charge_code: xyz  # can be read in policy files
+    tags:
+      - type:prod

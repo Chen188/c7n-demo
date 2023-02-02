@@ -70,7 +70,7 @@ resource "aws_iam_policy" "custodian_lambda_exec" {
 }
 
 ############## custodian_cicd_role ###############
-# assumed by code pipeline, to create lambda and config rules
+# assumed by CodePipeline, to create lambda and config rules
 # when depolying c7n policies.
 resource "aws_iam_role" "custodian_cicd_role" {
   name = "custodian-cicd-role"
@@ -85,7 +85,10 @@ resource "aws_iam_role" "custodian_cicd_role" {
         Effect = "Allow"
         Sid    = "TrustLambdaService"
         Principal = {
-          "Service": "codepipeline.amazonaws.com"
+          "Service": [
+            "codepipeline.amazonaws.com",
+            "codebuild.amazonaws.com"
+          ]
         }
       },
     ]

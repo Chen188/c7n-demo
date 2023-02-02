@@ -1,0 +1,16 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      python: 3.10
+  pre_build:
+    commands:
+      - echo "Installing Cloud Custodian"
+      - pip install -r requirements.txt
+      - sed -i "s/{account_id}/${account_id}/" ./custodian-policies/accounts.yaml
+  build:
+    commands:
+      - echo "Deploying Cloud Custodian Policies"
+      - for i in $(find ./custodian-policies -maxdepth 1 -type f -name *.yml); do c7n-org run -c accounts.yaml -s output -u $i; done
+      # - echo "Cleaning up Cloud Custodian Policy Resources"
+      # - for i in $(find ./custodian-policies -maxdepth 1 -type f -name *.yml); do c7n-org run-script -r us-east-1 -s output -c accounts.yaml "python3 mugc.py -c policies/$i --present"; done
