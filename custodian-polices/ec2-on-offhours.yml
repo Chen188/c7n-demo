@@ -1,0 +1,37 @@
+policies:
+  - name: stop-after-hours
+    resource: ec2
+    filters:
+      - type: offhour
+        tag: custodian_downtime
+        default_tz: pt
+        offhour: 19
+      - type: instance-age
+        hours: 1
+    actions:
+      - stop
+    mode:
+      type: periodic
+      schedule: "rate(1 hour)"
+      role: arn:aws:iam::{account_id}:role/custodian-lambda-exec-role
+
+
+  - name: start-after-hours
+    resource: ec2
+    filters:
+      - type: onhour
+        tag: custodian_downtime
+        default_tz: pt
+        onhour: 7
+      - type: value
+        value: 1
+        key: LaunchTime
+        op: less-than
+        value_type: age
+    actions:
+      - start
+    mode:
+      # lambda triggered by cloudwatch event every hour
+      type: periodic
+      schedule: "rate(1 hour)"
+      role: arn:aws:iam::{account_id}:role/custodian-lambda-exec-role

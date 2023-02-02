@@ -1,0 +1,12 @@
+policies:
+  - name: test
+    resource: terraform.aws_instance
+    description: |
+      EBS must be encrypted in Prod env, check root_block_device or ebs_block_device.
+    filters:
+      - or:
+        - root_block_device: absent
+        - root_block_device.encrypted: false
+        - and:
+            - ebs_block_device: present
+            - ebs_block_device.encrypted: false

@@ -1,0 +1,95 @@
+vars:
+  notify: &notify
+    type: notify
+    to:
+      - abc@example.com
+    subject: "EC2 - PublicIP not allowed - [custodian {{ account }} - {{ region }}]"
+    transport:
+      type: sqs
+      region: us-east-1
+      queue: https://sqs.us-east-2.amazonaws.com/123456789012/mailer
+
+policies:
+  - name: ec2-no-public-ip
+    resource: aws.ec2
+    description: |
+      Stop instance created with public ip but without PublicFacing tag.
+    mode:
+      type: cloudtrail
+      role: arn:aws:iam::{account_id}:role/custodian-lambda-exec-role
+      events:
+          - RunInstances
+          - source: ec2.amazonaws.com
+            event: AssociateAddress
+            ids: requestParameters.instanceId
+    filters:
+      # - type: event
+      #   key: "detail.requestParameters.networkInterfaceSet.items[].associatePublicIpAddress"
+      #   value: true
+      - PublicIpAddress: present
+      - tag:Custodian: present
+      - tag:PublicFacing: absent
+    actions:
+      - type: mark-for-op
+        tag: maid_status_public_ip
+        op: stop
+        days: 1
+      # - <<: *notify
+      #   action_desc: "Public EC2 found"
+      #   violation_desc: |
+      #     Instance is public accessible, will be stopped automaticly 
+      #     after 1 day if public ip not removed.
+
+  - name: ec2-unmark-if-publicIP-removed
+    resource: aws.ec2
+    mode: &run_mode
+      type: periodic
+      schedule: "rate(1 hour)"
+      role: arn:aws:iam::{account_id}:role/custodian-lambda-exec-role
+    filters:
+      - "tag:maid_status_public_ip": not-null
+      - not:
+        - or:
+          - PublicIpAddress: present
+          - tag:PublicFacing: absent
+    actions:
+      - type: remove-tag
+        tags: [maid_status_public_ip]
+
+  - name: ec2-no-public-ip-action
+    resource: aws.ec2
+    description: "Stop Instance after 1 day if public accessible"
+    filters:
+      - "tag:maid_status_public_ip": not-null
+      - type: marked-for-op
+        op: stop
+        tag: maid_status_public_ip
+    mode:
+      <<: *run_mode
+    actions:
+      - type: stop
+      # - <<: *notify
+      #   action_desc: "EC2 stopped"
+      #   violation_desc: "Instance is public accessible for 1 day."
+
+
+  # - name: ec2-find-existing-public-ips
+  #   resource: aws.ec2
+  #   description: |
+  #     If a EC2 instance without PublicFacing tag has a public IP, stop it.
+  #   mode:
+  #     type: periodic
+  #     schedule: "rate(1 hour)"
+  #     role: arn:aws:iam::{account_id}:role/custodian-lambda-exec-role
+  #   filters:
+  #     - "tag:maid_status_public_ip": absent
+  #     - and: &instance_filters
+  #       - PublicIpAddress: present
+  #       - tag:Custodian: present
+  #       - tag:PublicFacing: absent
+  #   actions:
+  #     - type: mark-for-op
+  #       tag: maid_status_public_ip
+  #       op: stop
+  #       days: 1
+  #     # - *notify

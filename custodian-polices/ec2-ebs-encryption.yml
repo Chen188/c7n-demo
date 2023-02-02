@@ -1,0 +1,15 @@
+policies:
+  - name: encrypt-unencrypted-ebs
+    resource: aws.ebs
+    filters:
+      - Encrypted: false
+      - type: instance
+        key: tag:Custodian
+        op: regex
+        value: '\s*'
+      - type: instance
+        key: tag:Environment
+        value: Prod
+    actions:
+      - type: encrypt-instance-volumes
+        key: aws/ebs
