@@ -1,6 +1,10 @@
 policies:
   - name: encrypt-unencrypted-ebs
     resource: aws.ebs
+    mode:
+      type: periodic
+      schedule: "rate(1 hour)"
+      role: arn:aws:iam::{account_id}:role/custodian-lambda-exec-role
     filters:
       - Encrypted: false
       - type: instance
