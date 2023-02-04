@@ -4,15 +4,8 @@ resource "aws_codebuild_project" "c7n_codebuild_demo" {
   name           = "7n-codebuild-demo"
   queued_timeout = 480
   service_role   = aws_iam_role.custodian_codebuild_role.arn
-#   tags = {
-#     Environment = var.env
-#   }
 
   artifacts {
-    # encryption_disabled    = false
-    # name                   = "7n-codebuild-demo-${var.env}"
-    # override_artifact_name = false
-    # packaging              = "NONE"
     type                   = "CODEPIPELINE"
   }
 
@@ -41,10 +34,6 @@ resource "aws_codebuild_project" "c7n_codebuild_demo" {
   }
 
   source {
-    # buildspec           = data.template_file.buildspec.rendered
-    # git_clone_depth     = 1
-    # insecure_ssl        = false
-    # report_build_status = false
     type                = "CODEPIPELINE"
   }
 }
@@ -56,11 +45,6 @@ resource "aws_codepipeline" "codepipeline" {
   artifact_store {
     location = aws_s3_bucket.c7n_cicd_asset_bkt.bucket
     type     = "S3"
-
-    # encryption_key {
-    #   id   = aws_kms_alias.c7n_cicd_asset_bkt_key_alias.arn
-    #   type = "KMS"
-    # }
   }
 
   stage {

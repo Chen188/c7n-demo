@@ -3,6 +3,9 @@ policies:
     resource: terraform.aws_instance
     description: |
       EBS must be encrypted in Prod env, check root_block_device or ebs_block_device.
+    metadata:
+      category: [encryption, security]
+      severity: high
     filters:
       - or:
         - root_block_device: absent
