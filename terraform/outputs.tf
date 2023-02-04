@@ -28,9 +28,14 @@ output "custodian_lambda_exec_role" {
   description = "IAM role assumed by lambda created by cloud custodian"
 }
 
-output "custodian_cicd_role" {
-  value       = aws_iam_role.custodian_cicd_role.arn
+output "custodian_allowlist_test_role" {
+  value       = aws_iam_role.custodian_allowlist_test_role.arn
   description = "IAM role assumed by CICD env"
+}
+
+output "c7n_cicd_asset_bkt" {
+  value = aws_s3_bucket.c7n_cicd_asset_bkt.bucket
+  description = "S3 bucket to store CICD source assets"
 }
 
 output "alb_cross_region" {

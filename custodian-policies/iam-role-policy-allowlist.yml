@@ -1,15 +1,13 @@
 vars:
   allowed-policy-arn: &allowed-policy-arn
-    - "arn:aws:iam::{account_id}:policy/custodian-cicd"
-    - "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
-    - "arn:aws:iam::aws:policy/AmazonVPCReadOnlyAccess"
-    - "arn:aws:iam::aws:policy/service-role/AWSConfigRulesExecutionRole"
+    # - "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
     - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 
 policies:
   - name: whitelist-custodian-cicd-iam-polices
     description: whitelist policies attached to iam role custodian-cicd-role
     resource: aws.iam-role
+    source: config
     mode:
       type: config-rule
       role: arn:aws:iam::{account_id}:role/custodian-lambda-exec-role
@@ -18,7 +16,7 @@ policies:
     #   schedule: "rate(1 hour)"
     #   role: arn:aws:iam::{account_id}:role/custodian-lambda-exec-role
     filters:
-      - RoleName: custodian-cicd-role
+      - RoleName: custodian-allowlist-test-role
       - type: has-specific-managed-policy
         op: not-in
         key: PolicyArn
@@ -27,18 +25,6 @@ policies:
       - type: set-policy
         state: detached
         arn: "*"
-      - type: set-policy
-        state: attached
-        arn: "arn:aws:iam::{account_id}:policy/custodian-cicd"
-      - type: set-policy
-        state: attached
-        arn: "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
-      - type: set-policy
-        state: attached
-        arn: "arn:aws:iam::aws:policy/AmazonVPCReadOnlyAccess"
-      - type: set-policy
-        state: attached
-        arn: "arn:aws:iam::aws:policy/service-role/AWSConfigRulesExecutionRole"
       - type: set-policy
         state: attached
         arn: "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"

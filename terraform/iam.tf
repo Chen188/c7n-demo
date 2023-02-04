@@ -73,11 +73,9 @@ resource "aws_iam_policy" "custodian_lambda_exec_policy" {
   policy = data.aws_iam_policy_document.custodian_lambda_exec_policy.json
 }
 
-############## custodian_cicd_role ###############
-# assumed by CodePipeline, to create lambda and config rules
-# when depolying c7n policies.
-resource "aws_iam_role" "custodian_cicd_role" {
-  name = "custodian-cicd-role"
+############## custodian_allowlist_test_role ###############
+resource "aws_iam_role" "custodian_allowlist_test_role" {
+  name = "custodian-allowlist-test-role"
 
   # Terraform's "jsonencode" function converts a
   # Terraform expression result to valid JSON syntax.
@@ -90,8 +88,7 @@ resource "aws_iam_role" "custodian_cicd_role" {
         Sid    = "TrustLambdaService"
         Principal = {
           "Service": [
-            "codepipeline.amazonaws.com",
-            "codebuild.amazonaws.com"
+            "lambda.amazonaws.com",
           ]
         }
       },
@@ -99,11 +96,9 @@ resource "aws_iam_role" "custodian_cicd_role" {
   })
 
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
-    "arn:aws:iam::aws:policy/AmazonVPCReadOnlyAccess",
+    # "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess",
     "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-    "arn:aws:iam::aws:policy/service-role/AWSConfigRulesExecutionRole",
-    aws_iam_policy.custodian_cicd_policy.arn
+    # aws_iam_policy.custodian_cicd_policy.arn
   ]
 
   tags = {
@@ -111,82 +106,82 @@ resource "aws_iam_role" "custodian_cicd_role" {
   }
 }
 
-data "aws_iam_policy_document" "custodian_cicd_policy" {
-  statement {
-    actions = [
-      "cloudwatch:PutMetricData",
-      "ec2:DescribeNetworkInterfaces",
-      "ec2:DeleteNetworkInterface",
-      "ec2:CreateNetworkInterface",
-      "events:PutRule",
-      "events:PutTargets",
-      "iam:PassRole",
-      "lambda:CreateFunction",
-      "lambda:TagResource",
-      "lambda:CreateEventSourceMapping",
-      "lambda:UntagResource",
-      "lambda:PutFunctionConcurrency",
-      "lambda:DeleteFunction",
-      "lambda:UpdateEventSourceMapping",
-      "lambda:InvokeFunction",
-      "lambda:UpdateFunctionConfiguration",
-      "lambda:UpdateAlias",
-      "lambda:UpdateFunctionCode",
-      "lambda:AddPermission",
-      "lambda:DeleteAlias",
-      "lambda:DeleteFunctionConcurrency",
-      "lambda:DeleteEventSourceMapping",
-      "lambda:RemovePermission",
-      "lambda:CreateAlias",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents",
-      "logs:CreateLogGroup"
-    ]
-    effect    = "Allow"
-    resources = ["*"]
-  }
+# data "aws_iam_policy_document" "custodian_cicd_policy" {
+#   statement {
+#     actions = [
+#       "cloudwatch:PutMetricData",
+#       "ec2:DescribeNetworkInterfaces",
+#       "ec2:DeleteNetworkInterface",
+#       "ec2:CreateNetworkInterface",
+#       "events:PutRule",
+#       "events:PutTargets",
+#       "iam:PassRole",
+#       "lambda:CreateFunction",
+#       "lambda:TagResource",
+#       "lambda:CreateEventSourceMapping",
+#       "lambda:UntagResource",
+#       "lambda:PutFunctionConcurrency",
+#       "lambda:DeleteFunction",
+#       "lambda:UpdateEventSourceMapping",
+#       "lambda:InvokeFunction",
+#       "lambda:UpdateFunctionConfiguration",
+#       "lambda:UpdateAlias",
+#       "lambda:UpdateFunctionCode",
+#       "lambda:AddPermission",
+#       "lambda:DeleteAlias",
+#       "lambda:DeleteFunctionConcurrency",
+#       "lambda:DeleteEventSourceMapping",
+#       "lambda:RemovePermission",
+#       "lambda:CreateAlias",
+#       "logs:CreateLogStream",
+#       "logs:PutLogEvents",
+#       "logs:CreateLogGroup"
+#     ]
+#     effect    = "Allow"
+#     resources = ["*"]
+#   }
 
-  statement {
-    actions = [
-      "s3:GetObject",
-      "s3:GetObjectVersion",
-      "s3:GetBucketVersioning",
-      "s3:PutObjectAcl",
-      "s3:PutObject"
-    ]
-    effect    = "Allow"
-    resources = [
-      "${aws_s3_bucket.c7n_cicd_asset_bkt.arn}",
-      "${aws_s3_bucket.c7n_cicd_asset_bkt.arn}/*"
-    ]
-  }
+#   statement {
+#     actions = [
+#       "s3:GetObject",
+#       "s3:GetObjectVersion",
+#       "s3:GetBucketVersioning",
+#       "s3:PutObjectAcl",
+#       "s3:PutObject"
+#     ]
+#     effect    = "Allow"
+#     resources = [
+#       "${aws_s3_bucket.c7n_cicd_asset_bkt.arn}",
+#       "${aws_s3_bucket.c7n_cicd_asset_bkt.arn}/*"
+#     ]
+#   }
 
-  statement {
-    actions = [
-      "codestar-connections:UseConnection"
-    ]
-    effect = "Allow"
-    resources = [
-      aws_codestarconnections_connection.github-c7n-demo.arn
-    ]
-  }
+#   statement {
+#     actions = [
+#       "codestar-connections:UseConnection"
+#     ]
+#     effect = "Allow"
+#     resources = [
+#       aws_codestarconnections_connection.github-c7n-demo.arn
+#     ]
+#   }
 
-  statement {
-    actions = [
-      "codebuild:BatchGetBuilds",
-      "codebuild:StartBuild"
-    ]
-    effect = "Allow"
-    resources = ["*"]
-  } 
-}
+#   statement {
+#     actions = [
+#       "codebuild:BatchGetBuilds",
+#       "codebuild:StartBuild"
+#     ]
+#     effect = "Allow"
+#     resources = ["*"]
+#   } 
+# }
 
-resource "aws_iam_policy" "custodian_cicd_policy" {
-  name        = "custodian-cicd"
-  description = "used in custodian CI/CD env"
+# resource "aws_iam_policy" "custodian_cicd_policy" {
+#   name        = "custodian-cicd"
+#   description = "used in custodian CI/CD env"
 
-  policy = data.aws_iam_policy_document.custodian_cicd_policy.json
-}
+#   policy = data.aws_iam_policy_document.custodian_cicd_policy.json
+# }
 
 
 
@@ -241,6 +236,15 @@ resource "aws_iam_policy" "custodian_codepipeline_policy" {
         Resource = [
           aws_codebuild_project.c7n_codebuild_demo.arn
         ]
+      },
+      {
+        Action = [
+          "codestar-connections:UseConnection"
+        ]
+        Effect = "Allow"
+        Resource = [
+          aws_codestarconnections_connection.github-c7n-demo.arn
+        ]
       }
     ]
   })
@@ -261,7 +265,18 @@ resource "aws_iam_role" "custodian_codebuild_role" {
         Sid    = "TrustCodeBuildService"
         Principal = {
           Service = "codebuild.amazonaws.com",
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/custodian-codebuild-role"
+        }
+      },{
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = "TrustSelf"
+        Principal = {
+          AWS = "*"
+        }
+        Condition = {
+          StringEquals = {
+            "aws:PrincipalArn": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/custodian-codebuild-role"
+          }
         }
       },
     ]
@@ -270,7 +285,8 @@ resource "aws_iam_role" "custodian_codebuild_role" {
   managed_policy_arns = [
     # Provides read-only access to AWS services and resources.
     "arn:aws:iam::aws:policy/ReadOnlyAccess", 
-    # Allow 
+    "arn:aws:iam::aws:policy/service-role/AWSConfigRulesExecutionRole",
+
     aws_iam_policy.custodian_lambda_exec_policy.arn,
     aws_iam_policy.custodian_codebuild_s3_cw_policy.arn,
     aws_iam_policy.custodian_policy_deployment_policy.arn

@@ -1,6 +1,6 @@
 # s3 bkt to store code asset
 resource "aws_s3_bucket" "c7n_cicd_asset_bkt" {
-  bucket = "c7n-cicd-asset-bkt-binc"
+  bucket = "c7n-cicd-asset-bkt-${random_string.suffix.result}"
 }
 
 resource "aws_s3_bucket_acl" "c7n_cicd_asset_bkt_acl" {

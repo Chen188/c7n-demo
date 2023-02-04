@@ -29,9 +29,9 @@ module "vpc_main" {
     "kubernetes.io/role/internal-elb"             = 1
   }
 
-  tags = {
+  # tags = {
 
-  }
+  # }
 }
 
 # VPC for the EC2 that attached to main VPC's LB
