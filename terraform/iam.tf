@@ -77,8 +77,6 @@ resource "aws_iam_policy" "custodian_lambda_exec_policy" {
 resource "aws_iam_role" "custodian_allowlist_test_role" {
   name = "custodian-allowlist-test-role"
 
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -106,86 +104,7 @@ resource "aws_iam_role" "custodian_allowlist_test_role" {
   }
 }
 
-# data "aws_iam_policy_document" "custodian_cicd_policy" {
-#   statement {
-#     actions = [
-#       "cloudwatch:PutMetricData",
-#       "ec2:DescribeNetworkInterfaces",
-#       "ec2:DeleteNetworkInterface",
-#       "ec2:CreateNetworkInterface",
-#       "events:PutRule",
-#       "events:PutTargets",
-#       "iam:PassRole",
-#       "lambda:CreateFunction",
-#       "lambda:TagResource",
-#       "lambda:CreateEventSourceMapping",
-#       "lambda:UntagResource",
-#       "lambda:PutFunctionConcurrency",
-#       "lambda:DeleteFunction",
-#       "lambda:UpdateEventSourceMapping",
-#       "lambda:InvokeFunction",
-#       "lambda:UpdateFunctionConfiguration",
-#       "lambda:UpdateAlias",
-#       "lambda:UpdateFunctionCode",
-#       "lambda:AddPermission",
-#       "lambda:DeleteAlias",
-#       "lambda:DeleteFunctionConcurrency",
-#       "lambda:DeleteEventSourceMapping",
-#       "lambda:RemovePermission",
-#       "lambda:CreateAlias",
-#       "logs:CreateLogStream",
-#       "logs:PutLogEvents",
-#       "logs:CreateLogGroup"
-#     ]
-#     effect    = "Allow"
-#     resources = ["*"]
-#   }
-
-#   statement {
-#     actions = [
-#       "s3:GetObject",
-#       "s3:GetObjectVersion",
-#       "s3:GetBucketVersioning",
-#       "s3:PutObjectAcl",
-#       "s3:PutObject"
-#     ]
-#     effect    = "Allow"
-#     resources = [
-#       "${aws_s3_bucket.c7n_cicd_asset_bkt.arn}",
-#       "${aws_s3_bucket.c7n_cicd_asset_bkt.arn}/*"
-#     ]
-#   }
-
-#   statement {
-#     actions = [
-#       "codestar-connections:UseConnection"
-#     ]
-#     effect = "Allow"
-#     resources = [
-#       aws_codestarconnections_connection.github-c7n-demo.arn
-#     ]
-#   }
-
-#   statement {
-#     actions = [
-#       "codebuild:BatchGetBuilds",
-#       "codebuild:StartBuild"
-#     ]
-#     effect = "Allow"
-#     resources = ["*"]
-#   } 
-# }
-
-# resource "aws_iam_policy" "custodian_cicd_policy" {
-#   name        = "custodian-cicd"
-#   description = "used in custodian CI/CD env"
-
-#   policy = data.aws_iam_policy_document.custodian_cicd_policy.json
-# }
-
-
-
-########################################
+###################custodian_codepipeline_role#####################
 # allow codepipeline to access s3(custodian source code asset) and invoke codebuild
 resource "aws_iam_role" "custodian_codepipeline_role" {
   name = "custodian-codepipeline-role"
@@ -251,7 +170,7 @@ resource "aws_iam_policy" "custodian_codepipeline_policy" {
 }
 
 
-########################################
+###################custodian_codebuild_role#####################
 # allow codebuild to access s3(custodian source code asset) and put build log to cloudwatch
 resource "aws_iam_role" "custodian_codebuild_role" {
   name = "custodian-codebuild-role"
@@ -320,16 +239,7 @@ resource "aws_iam_policy" "custodian_codebuild_s3_cw_policy" {
         Resource = [
           "arn:aws:logs:*:*:log-group:/aws/codebuild/*"
         ]
-      },
-      # {
-      #   Action = [
-      #     "sts:AssumeRole"
-      #   ]
-      #   Effect = "Allow"
-      #   Resource = [
-      #     aws_iam_role.custodian_policy_deployment_role.arn
-      #   ]
-      # }
+      }
     ]
   })
 }
