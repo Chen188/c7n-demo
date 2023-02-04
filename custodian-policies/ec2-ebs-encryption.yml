@@ -10,7 +10,7 @@ policies:
       - type: instance
         key: tag:Custodian
         op: regex
-        value: '\s*'
+        value: '.*'
       - type: instance
         key: tag:Environment
         value: Prod
